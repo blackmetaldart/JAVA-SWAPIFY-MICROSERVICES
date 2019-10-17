@@ -1,0 +1,68 @@
+# USING THE VERSION
+version: '3'
+
+# LIST OF SERVICES FROM THE DOCKER
+services:
+  # FOR THE EUREKA SERVER
+  eureka:
+    # USE JDK 1.8 WITH MAVEN
+      image: maven:3.6.1-jdk-8
+      #OPEN THE PORT 8761; THE PRIMARY IN EUREKA PROJECT
+      ports:
+        - '8761:8761'
+      # SET WORKING DIRECTORY AS /APP
+      working_dir: /app
+      # CREATE VOLUME FOR THE SERVER
+      volumes:
+        - ./eureka-server:/app
+      # TELL DOCKER TO RUN THE APPLICATION
+      command: 'mvn spring-boot:run'
+      # LOAD PRIMARY PROFILE AS DEV
+      environment:
+        - SPRING_PROFILES_ACTIVE=dev
+  api-gateway:
+      image: maven:3.6.1-jdk-8
+      ports:
+        - '8080:8080'
+      working_dir: /app
+      volumes:
+        - ./api-gateway:/app
+      depends_on:
+        - eureka
+      command: 'mvn spring-boot:run'
+      environment:
+        - SPRING_PROFILES_ACTIVE=DEV
+  postgresdev:
+    # TO USE POSTGRES AS OUR DATABASE
+    image: postgres
+    #PORT TO RUN THE DB
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=pgdev
+  users-api:
+    image: maven:3.6.1-jdk-8
+    ports:
+      - '8081:8081'
+    working_dir: /app
+    volumes:
+      - ./users-api:/app
+    depends_on:
+      - eureka
+    command: 'mvn spring-boot:run'
+    environment:
+      - SPRING_PROFILES_ACTIVE=DEV
+  songs-api:
+    image: maven:3.6.1-jdk-8
+    ports:
+      - '8089:8089'
+    working_dir: /app
+    volumes:
+      - ./songs-api:/app
+    depends_on:
+      - eureka
+    command: 'mvn spring-boot:run'
+    environment:
+      - SPRING_PROFILES_ACTIVE=DEV
